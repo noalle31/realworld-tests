@@ -20,11 +20,12 @@ jobs:
         run: |
           echo "Waiting for the API to respond..."
           for i in {1..30}; do
-            if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/tags | grep -q "401"; then
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/tags || true)
+            echo "Attempt $i: got HTTP $code"
+            if [ "$code" = "401" ] || [ "$code" = "200" ]; then
               echo "API is up and responding!"
               exit 0
             fi
-            echo "Attempt $i: not ready yet, waiting 2s..."
             sleep 2
           done
           echo "API did not become ready in time."
