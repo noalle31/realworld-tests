@@ -1,27 +1,54 @@
-name: Playwright Tests
+name: API Tests
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
+
 jobs:
   test:
-    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Start backend with Docker Compose
+        run: docker compose up -d
+        
+      - name: Wait for backend to be ready
+        run: |
+          echo "Waiting for the API to respond..."
+          for i in {1..30}; do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/tags | grep -q "401"; then
+              echo "API is up and responding!"
+              exit 0
+            fi
+            echo "Attempt $i: not ready yet, waiting 2s..."
+            sleep 2
+          done
+          echo "API did not become ready in time."
+          docker compose logs realworld-api
+          exit 1
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30

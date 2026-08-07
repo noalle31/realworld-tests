@@ -1,0 +1,17 @@
+services:
+  realworld-mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+
+  realworld-api:
+    image: gabrielgua/realworld:latest
+    command: ["/wait-for-it.sh", "realworld-mysql:3306", "-t", "30", "--", "java", "-jar", "realworld.jar"]
+    environment:
+      SPRING_PROFILE: "dev"
+      DB_HOST: realworld-mysql
+      TOKEN_SECRET: "thisIsNotAStrongSecretAlsoHardCodingASecretInADockerComposeFileIsNotRecommended"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - realworld-mysql
