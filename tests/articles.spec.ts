@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { registerAndLogin, unique } from './helpers';
+import { unique, registerAndLogin, createArticle } from './helpers';
 
 test.describe('Articles', () => {
   test.describe('CRUD', () => {
@@ -12,7 +12,7 @@ test.describe('Articles', () => {
 
     test('create an article + read it', async ({ request }) => {
       const article = {
-        title: unique('Create Article Test'),
+        title: unique('Article Test'),
         description: 'A short description',
         body: 'The body of the article.',
         tagList: ['testing', 'playwright'],
@@ -36,17 +36,7 @@ test.describe('Articles', () => {
     });
 
     test('update an article and confirm the changes persist', async ({ request }) => {
-      const createRes = await request.post('/articles', {
-        headers: authHeader,
-        data: {
-          article: {
-            title: unique('Edit Article Test'),
-            description: 'd',
-            body: 'b',
-          },
-        },
-      });
-      const slug = (await createRes.json()).article.slug;
+      const slug = await createArticle(request, authHeader);
 
       const updateRes = await request.put(`/articles/${slug}`, {
         headers: authHeader,
@@ -68,17 +58,7 @@ test.describe('Articles', () => {
     });
 
     test('delete an article and confirm it is gone', async ({ request }) => {
-      const createRes = await request.post('/articles', {
-        headers: authHeader,
-        data: {
-          article: {
-            title: unique('Delete Article Test'),
-            description: 'd',
-            body: 'b',
-          },
-        },
-      });
-      const slug = (await createRes.json()).article.slug;
+      const slug = await createArticle(request, authHeader);
 
       const deleteRes = await request.delete(`/articles/${slug}`,
         { headers: authHeader });

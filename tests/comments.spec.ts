@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { registerAndLogin, unique } from './helpers';
+import { registerAndLogin, createArticle, createComment } from './helpers';
 
 test.describe('Comments', () => {
   let authHeader: { Authorization: string };
@@ -10,19 +10,8 @@ test.describe('Comments', () => {
     const token = await registerAndLogin(request);
     authHeader = { Authorization: `Token ${token}` };
 
-    // create article -> get its slug
-    const createRes = await request.post('/articles', {
-      headers: authHeader,
-      data: { 
-        article: { 
-          title: unique('Comments Test'),
-          description: 'd',
-          body: 'b' 
-        } 
-      },
-    });
-    
-    slug = (await createRes.json()).article.slug;
+    // create article -> get slug
+    slug = await createArticle(request, authHeader);
   });
 
   test.describe('CRUD', () => {
@@ -39,16 +28,8 @@ test.describe('Comments', () => {
     });
 
     test('list comments and confirm the created comment is present', async({ request }) => {
-      const commentRes = await request.post(`/articles/${slug}/comments`, {
-        headers: authHeader,
-        data: { comment: { body: 'Lovely article!' } },
-      });
+      const commentId = await createComment(request, authHeader, slug, 'Lovely article!')
       
-      expect(commentRes.status()).toBe(201);
-
-      const created = (await commentRes.json()).comment;
-      const commentId = created.id;
-
       const listRes = await request.get(`/articles/${slug}/comments`, {
         headers: authHeader
       });
@@ -62,15 +43,7 @@ test.describe('Comments', () => {
     });
 
     test(`delete a comment and confirm it's gone`, async({ request }) => {
-      const commentRes = await request.post(`/articles/${slug}/comments`, {
-        headers: authHeader,
-        data: { comment: { body: 'Nice article!' } },
-      });
-
-      expect(commentRes.status()).toBe(201);
-
-      const created = (await commentRes.json()).comment;
-      const commentId = created.id;
+      const commentId = await createComment(request, authHeader, slug, 'Nice article!')
 
       const deleteRes = await request.delete(`/articles/${slug}/comments/${commentId}`, {
         headers: authHeader,
@@ -90,20 +63,6 @@ test.describe('Comments', () => {
 
   test.describe('Comments failures', () => {
     test('creating a comment with an empty body should be rejected', async ({ request }) => {
-      const article = {
-        title: unique('Add Invalid Comment Test'),
-        description: 'd',
-        body: 'b',
-      };
-
-      const createRes = await request.post('/articles', {
-        headers: authHeader,
-        data: { article }
-      });
-    
-      expect(createRes.status()).toBe(201);
-      const slug = (await createRes.json()).article.slug;
-
       const commentRes = await request.post(`/articles/${slug}/comments`, {
         headers: authHeader,
         data: { comment: { body: "" } }
