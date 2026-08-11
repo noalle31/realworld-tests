@@ -10,8 +10,8 @@ export async function registerAndLogin(request: APIRequestContext): Promise<stri
   const name = unique('qa_user');
   const user = { username: name, email: `${name}@example.com`, password: 'Password123!' };
 
-  const reg = await request.post('/users', { data: { user } });
-  expect(reg.ok()).toBeTruthy();
+  const register = await request.post('/users', { data: { user } });
+  expect(register.ok()).toBeTruthy();
 
   const login = await request.post('/users/login', {
     data: { user: { email: user.email, password: user.password } },
