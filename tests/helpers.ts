@@ -45,7 +45,7 @@ export async function createArticle(
         title: unique('Article Title'),
         description: 'A short description',
         body: 'The body of the article.',
-        tagList: [ 'testing', 'playwright' ],
+        tagList: [ unique('qa'), unique('automation')]
       } 
     },
   });

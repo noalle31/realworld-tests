@@ -15,7 +15,7 @@ test.describe('Articles', () => {
         title: unique('Article Title'),
         description: 'A short description',
         body: 'The body of the article.',
-        tagList: [ 'testing', 'playwright' ],
+        tagList: [ unique('qa'), unique('automation')]
       };
 
       const createRes = await request.post('/articles', {
@@ -75,7 +75,7 @@ test.describe('Articles', () => {
         title: unique('Authentication Fail Test'),
         description: 'A short description',
         body: 'The body of the article.',
-        tagList: ['testing', 'playwright'],
+        tagList: [ unique('qa'), unique('automation')]
       };
 
       const createRes = await request.post('/articles', {
@@ -95,7 +95,7 @@ test.describe('Articles', () => {
         title: unique('Authorization Failed Test'),
         description: 'A short description',
         body: 'The body of the article.',
-        tagList: ['testing', 'playwright'],
+        tagList: [ unique('qa'), unique('automation')]
       };
 
       const createRes = await request.post('/articles', {

@@ -14,7 +14,7 @@ test.describe('Tags', () => {
       title: unique('Article Title'),
       description: 'A short description',
       body: 'The body of the article.',
-      tagList: [ 'testing', 'playwright', 'api' ],
+      tagList: [ unique('qa'), unique('automation')]
     };
 
     const createRes = await request.post('/articles', {
