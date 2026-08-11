@@ -50,6 +50,7 @@ test('register -> login with valid email + wrong password', async ({ request }) 
     const registerRes = await request.post('/users', {
       data: { user },
     });
+    
     expect(registerRes.ok()).toBeTruthy();
     const registered = await registerRes.json();
     expect(registered.user.email).toBe(user.email);

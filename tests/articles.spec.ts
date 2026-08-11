@@ -12,10 +12,10 @@ test.describe('Articles', () => {
 
     test('create an article + read it', async ({ request }) => {
       const article = {
-        title: unique('Article Test'),
+        title: unique('Article Title'),
         description: 'A short description',
         body: 'The body of the article.',
-        tagList: ['testing', 'playwright'],
+        tagList: [ 'testing', 'playwright' ],
       };
 
       const createRes = await request.post('/articles', {

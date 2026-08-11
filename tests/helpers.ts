@@ -1,11 +1,11 @@
 import { APIRequestContext, expect } from '@playwright/test';
 
-// Makes a collision-proof unique string for emails, titles, etc.
+// create a unique string for emails, usernames, etc.
 export function unique(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
 }
 
-// Registers a fresh user, logs in, and returns their auth token.
+// register fresh user -> logs in -> returns auth token
 export async function registerAndLogin(request: APIRequestContext): Promise<string> {
   const name = unique('qa_user');
   const user = { username: name, email: `${name}@example.com`, password: 'Password123!' };
@@ -32,9 +32,10 @@ export async function createArticle(
     headers: authHeader,
     data: { 
       article: { 
-        title: unique('Test Article'),
-        description: 'Description',
-        body: 'A test article body.' 
+        title: unique('Article Title'),
+        description: 'A short description',
+        body: 'The body of the article.',
+        tagList: [ 'testing', 'playwright' ],
       } 
     },
   });
