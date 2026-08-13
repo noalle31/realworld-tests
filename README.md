@@ -22,17 +22,26 @@ The focus is on testing the API: registering and authenticating users, creating 
 The suite is organised by resources, with each covering both positive/failure cases.
 
 ### Users (`users.spec.ts`)
-- Full registration → login → authenticated request flow, verifying a token is issued and grants access to a protected endpoint
-- Login with a valid email but wrong password is rejected (401)
+- Full registration → login → authenticated request flow
+- Login with a valid email but wrong password is rejected
+
+### Data-Driven Validation (`data-driven.spec.ts`)
+- Registration is rejected for blank/invalid fields (blank username, blank password, blank email, invalid email)
 
 ### Articles (`articles.spec.ts`)
-- **CRUD:** create an article and read it back, update it and confirm the change persists, delete it and confirm it's gone
-- **Authentication - Failure:** creating an article without a token is rejected (401)
-- **Authorization - Failure:** a user cannot delete another user's article (403), and the article survives the attempt
+- **CRUD:** Create an article -> read it back -> update it -> confirm the change persists -> delete it and confirm it's gone
+- **Authentication - Failure:** Creating an article without a token is rejected
+- **Authorization - Failure:** A user can't delete another user's article, and the article is still present
 
 ### Comments (`comments.spec.ts`)
-- **CRUD:** create a comment, list comments and confirm the created comment is present, delete a comment and confirm it's gone
-- **Validation:** creating a comment with an empty body is rejected (400) with an expected message
+- **CRUD:** Create a comment -> list comments and confirm the created comment is present -> delete a comment and confirm it's gone
+- **Validation:** Creating a comment with an empty body is rejected with an expected message
+
+### Tags (`tags.spec.ts`)
+- Creating an article with tags surfaces those tags in the global tag list
+
+### Following (`following.spec.ts`)
+- Following and unfollowing a user's profile flips the `following` state on the profile as expected
 
 ## Running Locally
 
@@ -82,14 +91,13 @@ The GitHub Actions workflow (`.github/workflows/api-tests.yml`) runs the full su
 
 ## Notes on Design Decisions
 
-- **The backend's spec read from source.** This implementation deviates from the RealWorld spec in a few ways, for example - endpoints are mounted at the root (e.g. `/users`, not `/api/users`), it uses a `Token` authorization scheme rather than `Bearer`, and some endpoints the spec leaves public are actually protected These were discovered by reading the application's controllers and security configuration, and the tests assert against the app's *actual* behaviour.
-
 - **Assertions target behaviour, not specific details.** Where the exact status is known and expected (e.g. 401 vs 403 vs 400), it's asserted explicitly. Where an error message is generic, the test checks the status code rather than a string that might change.
 
 - **Shared setup is extracted into helpers.** Registration/login and article/comment creation are factored into helpers (`registerAndLogin`, `createArticle`, `createComment`) so test bodies focus on the tested behaviour. The helpers take the logged-in user as a parameter instead of creating their own hidden users.
 
 - **Known test-isolation trade-off.** Tests generate unique data per run and rely on CI's fresh database for isolation. Under a long-lived local database with parallel workers, accumulated data can occasionally cause collisions; resetting the local database (`docker compose down -v`) restores a clean slate. In a production suite this would be hardened with guaranteed-unique identifiers and/or per-run database seeding.
 
+- **Tests run in parallel and generate unique data per run to stay independent.** An early version shared tag strings across tests, which caused intermittent failures: two article creations created the same tag, resulting in a 401.
 
 ## Project Structure
 
@@ -97,8 +105,11 @@ The GitHub Actions workflow (`.github/workflows/api-tests.yml`) runs the full su
 .
 ├── tests/
 │   ├── users.spec.ts        # user registration, login, auth
+│   ├── data-driven.spec.ts  # parameterised registration validation
 │   ├── articles.spec.ts     # article CRUD + auth/authorization
 │   ├── comments.spec.ts     # comment CRUD + validation
+│   ├── tags.spec.ts         # tags surfaced in global tag list
+│   ├── following.spec.ts    # follow/unfollow profile state
 │   └── helpers.ts           # shared setup helpers
 ├── docker-compose.yml       # backend (API + MySQL) for local + CI
 ├── playwright.config.ts     # Playwright configuration
